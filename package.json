@@ -1,0 +1,46 @@
+{
+  "name": "crypto_market_backend",
+  "version": "1.0.0",
+  "description": "Express API for the Crypto Market Flutter app: proxies, validates, normalizes and caches CoinGecko market data.",
+  "type": "module",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env src/server.js",
+    "dev": "node --env-file-if-exists=.env --watch src/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ragavendars21/crypto_market_backend.git"
+  },
+  "keywords": [],
+  "author": "Ragavendar S",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ragavendars21/crypto_market_backend/issues"
+  },
+  "homepage": "https://github.com/ragavendars21/crypto_market_backend#readme",
+  "dependencies": {
+    "axios": "^1.20.0",
+    "cors": "^2.8.6",
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.1",
+    "helmet": "^8.3.0",
+    "pino": "^10.4.0",
+    "pino-http": "^11.0.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.13.0",
+    "globals": "^17.13.0",
+    "pino-pretty": "^13.2.0",
+    "supertest": "^7.3.1",
+    "vitest": "^5.0.5"
+  }
+}

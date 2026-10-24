@@ -1,0 +1,14 @@
+node_modules/
+coverage/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
