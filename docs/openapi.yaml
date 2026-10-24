@@ -1,0 +1,333 @@
+openapi: 3.0.3
+info:
+  title: Crypto Market API
+  version: 1.0.0
+  description: |
+    Backend for the Crypto Market Flutter app. It proxies CoinGecko, validates input,
+    normalizes responses into a stable contract and caches them to respect rate limits.
+
+    All monetary values are USD. Values the provider does not supply are `null`, never `0`.
+    Data provided by CoinGecko.
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: System
+  - name: Coins
+  - name: Market
+
+paths:
+  /api/v1/health:
+    get:
+      tags: [System]
+      summary: Check that the server is running
+      description: Never calls the data provider.
+      responses:
+        '200':
+          description: Server is up
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      status: { type: string, example: ok }
+                      dataSource: { $ref: '#/components/schemas/DataSource' }
+                      uptimeSeconds: { type: integer, example: 1234 }
+                      version: { type: string, example: 1.0.0 }
+
+  /api/v1/coins:
+    get:
+      tags: [Coins]
+      summary: List coins (search, filter, sort, paginate) or look up coins by ID
+      description: |
+        Without `ids`, results come from the top 250 coins by market cap (cached for 60 s), and
+        search, filters, sorting and pagination are applied by this server.
+        With `ids`, the given coins are fetched directly (used by the watchlist). `ids` cannot be
+        combined with `search`, `movement`, `tier` or `page`.
+      parameters:
+        - { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: perPage, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 25 } }
+        - name: search
+          in: query
+          description: Case-insensitive substring match on coin name or symbol.
+          schema: { type: string, minLength: 1, maxLength: 50 }
+        - name: sort
+          in: query
+          schema:
+            type: string
+            default: market_cap_desc
+            enum: [market_cap_desc, market_cap_asc, price_desc, price_asc, change_24h_desc, change_24h_asc, volume_desc, volume_asc]
+        - name: movement
+          in: query
+          description: Filter by direction of the 24h price change.
+          schema: { type: string, enum: [all, gainers, losers], default: all }
+        - name: tier
+          in: query
+          description: large ≥ $10B, mid $1B–$10B, small < $1B market cap.
+          schema: { type: string, enum: [all, large, mid, small], default: all }
+        - name: ids
+          in: query
+          description: Comma-separated coin IDs (max 50).
+          schema: { type: string, example: 'bitcoin,ethereum' }
+      responses:
+        '200':
+          description: Matching coins. An empty list is still a 200.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/CoinSummary' }
+                  meta: { $ref: '#/components/schemas/PageMeta' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '502': { $ref: '#/components/responses/UpstreamError' }
+        '503': { $ref: '#/components/responses/UpstreamRateLimited' }
+        '504': { $ref: '#/components/responses/UpstreamTimeout' }
+
+  /api/v1/coins/{coinId}:
+    get:
+      tags: [Coins]
+      summary: Coin details
+      parameters:
+        - $ref: '#/components/parameters/CoinId'
+      responses:
+        '200':
+          description: Coin details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/CoinDetails' }
+                  meta: { $ref: '#/components/schemas/Meta' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '404': { $ref: '#/components/responses/CoinNotFound' }
+        '502': { $ref: '#/components/responses/UpstreamError' }
+        '503': { $ref: '#/components/responses/UpstreamRateLimited' }
+        '504': { $ref: '#/components/responses/UpstreamTimeout' }
+
+  /api/v1/coins/{coinId}/market-chart:
+    get:
+      tags: [Coins]
+      summary: Historical prices for a coin
+      description: |
+        Granularity follows the provider: 1d → 5-minute points, 7d/30d → hourly, 1y → daily.
+        Ranges beyond 365 days are not available on the provider's Demo plan.
+      parameters:
+        - $ref: '#/components/parameters/CoinId'
+        - name: range
+          in: query
+          required: true
+          schema: { type: string, enum: ['1d', '7d', '30d', '1y'] }
+      responses:
+        '200':
+          description: Price points, oldest first. May be empty for new coins.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/PriceHistory' }
+                  meta: { $ref: '#/components/schemas/Meta' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '404': { $ref: '#/components/responses/CoinNotFound' }
+        '502': { $ref: '#/components/responses/UpstreamError' }
+        '503': { $ref: '#/components/responses/UpstreamRateLimited' }
+        '504': { $ref: '#/components/responses/UpstreamTimeout' }
+
+  /api/v1/market/global:
+    get:
+      tags: [Market]
+      summary: Global market statistics
+      responses:
+        '200':
+          description: Global statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/GlobalStats' }
+                  meta: { $ref: '#/components/schemas/Meta' }
+        '502': { $ref: '#/components/responses/UpstreamError' }
+        '503': { $ref: '#/components/responses/UpstreamRateLimited' }
+        '504': { $ref: '#/components/responses/UpstreamTimeout' }
+
+components:
+  parameters:
+    CoinId:
+      name: coinId
+      in: path
+      required: true
+      schema: { type: string, pattern: '^[a-z0-9-]{1,100}$', example: bitcoin }
+
+  schemas:
+    DataSource:
+      type: string
+      enum: [live, mock]
+
+    Meta:
+      type: object
+      properties:
+        source:
+          type: string
+          enum: [live, mock, stale]
+          description: '"stale" means the provider failed and the last cached copy was served.'
+        cachedAt: { type: string, format: date-time, nullable: true }
+
+    PageMeta:
+      allOf:
+        - $ref: '#/components/schemas/Meta'
+        - type: object
+          description: Pagination fields are present only for listing requests (not `ids`).
+          properties:
+            page: { type: integer, example: 1 }
+            perPage: { type: integer, example: 25 }
+            totalItems: { type: integer, example: 250 }
+            totalPages: { type: integer, example: 10 }
+            hasNextPage: { type: boolean }
+            universeSize: { type: integer, example: 250 }
+
+    CoinSummary:
+      type: object
+      required: [id, symbol, name]
+      properties:
+        id: { type: string, example: bitcoin }
+        symbol: { type: string, example: btc }
+        name: { type: string, example: Bitcoin }
+        imageUrl: { type: string, nullable: true }
+        marketCapRank: { type: integer, nullable: true }
+        priceUsd: { type: number, nullable: true }
+        priceChange24hUsd: { type: number, nullable: true }
+        priceChangePercentage24h: { type: number, nullable: true }
+        marketCapUsd: { type: number, nullable: true }
+        totalVolumeUsd: { type: number, nullable: true }
+        circulatingSupply: { type: number, nullable: true }
+        lastUpdated: { type: string, format: date-time, nullable: true }
+
+    PriceExtreme:
+      type: object
+      nullable: true
+      properties:
+        priceUsd: { type: number }
+        changePercentage: { type: number, nullable: true }
+        date: { type: string, format: date-time, nullable: true }
+
+    CoinDetails:
+      type: object
+      required: [id, symbol, name, priceChangePercentages]
+      properties:
+        id: { type: string }
+        symbol: { type: string }
+        name: { type: string }
+        imageUrl: { type: string, nullable: true }
+        marketCapRank: { type: integer, nullable: true }
+        priceUsd: { type: number, nullable: true }
+        marketCapUsd: { type: number, nullable: true }
+        fullyDilutedValuationUsd: { type: number, nullable: true }
+        totalVolumeUsd: { type: number, nullable: true }
+        high24hUsd: { type: number, nullable: true }
+        low24hUsd: { type: number, nullable: true }
+        circulatingSupply: { type: number, nullable: true }
+        totalSupply: { type: number, nullable: true }
+        maxSupply: { type: number, nullable: true, description: null for coins without a supply cap }
+        priceChangePercentages:
+          type: object
+          description: Every key is always present; values are null when unavailable.
+          properties:
+            1h: { type: number, nullable: true }
+            24h: { type: number, nullable: true }
+            7d: { type: number, nullable: true }
+            14d: { type: number, nullable: true }
+            30d: { type: number, nullable: true }
+            60d: { type: number, nullable: true }
+            200d: { type: number, nullable: true }
+            1y: { type: number, nullable: true }
+        allTimeHigh: { $ref: '#/components/schemas/PriceExtreme' }
+        allTimeLow: { $ref: '#/components/schemas/PriceExtreme' }
+        lastUpdated: { type: string, format: date-time, nullable: true }
+
+    PriceHistory:
+      type: object
+      properties:
+        coinId: { type: string }
+        range: { type: string, enum: ['1d', '7d', '30d', '1y'] }
+        granularity: { type: string, enum: [5m, hourly, daily] }
+        points:
+          type: array
+          items:
+            type: object
+            properties:
+              timestamp: { type: integer, description: Milliseconds since the Unix epoch }
+              priceUsd: { type: number }
+
+    GlobalStats:
+      type: object
+      properties:
+        totalMarketCapUsd: { type: number, nullable: true }
+        totalVolumeUsd: { type: number, nullable: true }
+        marketCapChangePercentage24h: { type: number, nullable: true }
+        volumeChangePercentage24h: { type: number, nullable: true }
+        activeCryptocurrencies: { type: integer, nullable: true }
+        markets: { type: integer, nullable: true }
+        dominance:
+          type: array
+          items:
+            type: object
+            properties:
+              symbol: { type: string, example: btc }
+              percentage: { type: number, example: 54.8 }
+        updatedAt: { type: string, format: date-time, nullable: true }
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code: { type: string }
+            message: { type: string }
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field: { type: string }
+                  message: { type: string }
+
+  responses:
+    ValidationError:
+      description: Invalid path or query parameter (`VALIDATION_ERROR`)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    CoinNotFound:
+      description: Unknown coin ID (`COIN_NOT_FOUND`)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    RateLimited:
+      description: This server's rate limit was exceeded (`RATE_LIMITED`). See the Retry-After header.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    UpstreamError:
+      description: The provider failed or returned an unexpected response (`UPSTREAM_ERROR`)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    UpstreamRateLimited:
+      description: The provider's rate limit was hit and no cached copy exists (`UPSTREAM_RATE_LIMITED`). See Retry-After.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    UpstreamTimeout:
+      description: The provider did not respond in time (`UPSTREAM_TIMEOUT`)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
