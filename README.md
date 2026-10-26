@@ -32,6 +32,10 @@ COINGECKO_API_KEY=your-demo-key
 
 The server refuses to start if the configuration is invalid (for example, live mode without a key).
 
+> Start the server with `npm run dev` or `npm start`. Running `node src/server.js` directly skips
+> `--env-file`, so `.env` is not loaded and the server silently uses the default mock mode.
+> `GET /api/v1/health` reports which `dataSource` is active.
+
 | Script | Purpose |
 |---|---|
 | `npm run dev` | Start with auto-restart |

@@ -1,0 +1,111 @@
+{
+  "id": "ethereum",
+  "symbol": "eth",
+  "name": "Ethereum",
+  "image": {
+    "thumb": "https://coin-images.coingecko.com/coins/images/279/thumb/ethereum.png?1696501628",
+    "small": "https://coin-images.coingecko.com/coins/images/279/small/ethereum.png?1696501628",
+    "large": "https://coin-images.coingecko.com/coins/images/279/large/ethereum.png?1696501628"
+  },
+  "market_cap_rank": 2,
+  "market_data": {
+    "current_price": {
+      "usd": 2327.19
+    },
+    "total_value_locked": null,
+    "mcap_to_tvl_ratio": null,
+    "fdv_to_tvl_ratio": null,
+    "roi": {
+      "times": 43.309089628863546,
+      "currency": "btc",
+      "percentage": 4330.908962886355
+    },
+    "ath": {
+      "usd": 4946.05
+    },
+    "ath_change_percentage": {
+      "usd": -52.94842
+    },
+    "ath_date": {
+      "usd": "2025-08-24T11:21:03.000Z"
+    },
+    "atl": {
+      "usd": 0.432979
+    },
+    "atl_change_percentage": {
+      "usd": 537384.46911
+    },
+    "atl_date": {
+      "usd": "2015-10-19T16:00:00.000Z"
+    },
+    "market_cap": {
+      "usd": 284324938207
+    },
+    "market_cap_rank": 2,
+    "outstanding_token_value_usd": null,
+    "market_cap_rank_with_rehypothecated": 2,
+    "fully_diluted_valuation": {
+      "usd": 284324938207
+    },
+    "market_cap_fdv_ratio": 1,
+    "total_volume": {
+      "usd": 8470113652
+    },
+    "high_24h": {
+      "usd": 2359.75
+    },
+    "low_24h": {
+      "usd": 2293.2
+    },
+    "price_change_24h": 1.430873,
+    "price_change_percentage_24h": 0.06152,
+    "price_change_percentage_7d": -4.47231,
+    "price_change_percentage_14d": -9.0038,
+    "price_change_percentage_30d": -13.22046,
+    "price_change_percentage_60d": -8.1894,
+    "price_change_percentage_200d": 7.26753,
+    "price_change_percentage_1y": -41.66808,
+    "market_cap_change_24h": 206906180,
+    "market_cap_change_percentage_24h": 0.07282,
+    "price_change_24h_in_currency": {
+      "usd": 1.43
+    },
+    "price_change_percentage_1h_in_currency": {
+      "usd": -0.02694
+    },
+    "price_change_percentage_24h_in_currency": {
+      "usd": 0.06152
+    },
+    "price_change_percentage_7d_in_currency": {
+      "usd": -4.47231
+    },
+    "price_change_percentage_14d_in_currency": {
+      "usd": -9.0038
+    },
+    "price_change_percentage_30d_in_currency": {
+      "usd": -13.22046
+    },
+    "price_change_percentage_60d_in_currency": {
+      "usd": -8.1894
+    },
+    "price_change_percentage_200d_in_currency": {
+      "usd": 7.26753
+    },
+    "price_change_percentage_1y_in_currency": {
+      "usd": -41.66808
+    },
+    "market_cap_change_24h_in_currency": {
+      "usd": 206906180
+    },
+    "market_cap_change_percentage_24h_in_currency": {
+      "usd": 0.07282
+    },
+    "total_supply": 122164245.28340018,
+    "max_supply": null,
+    "max_supply_infinite": true,
+    "circulating_supply": 122164245.28340018,
+    "outstanding_supply": null,
+    "last_updated": "2026-10-26T10:23:50.000Z"
+  },
+  "last_updated": "2026-10-26T10:23:50.000Z"
+}
