@@ -105,9 +105,28 @@ function generatePrices(row, days) {
     prices[i] = prices[i + 1] / (1 + (random() * 2 - 1) * volatility);
   }
 
+  // Bend the walk so the chart's start-to-end change matches the sample
+  // percentage for this period, keeping the chart consistent with the
+  // coin's reported performance.
+  const rangeChange = sampleChangeForDays(row, days);
+  if (rangeChange !== null) {
+    const startCorrection = row.current_price / (1 + rangeChange / 100) / prices[0];
+    for (let i = 0; i < count; i++) {
+      const progress = i / (count - 1);
+      prices[i] *= startCorrection + (1 - startCorrection) * progress;
+    }
+  }
+
   return prices
     .map((price, i) => [end - (count - 1 - i) * stepMs, price])
     .filter(([timestamp]) => timestamp >= listedAt);
+}
+
+/** The sample change percentage that describes a chart of `days` length. */
+function sampleChangeForDays(row, days) {
+  if (days === 1) return row.price_change_percentage_24h;
+  const key = { 7: '7d', 30: '30d', 365: '1y' }[days];
+  return MOCK_DETAIL_EXTRAS[row.id]?.changes?.[key] ?? null;
 }
 
 /** Small seeded PRNG (mulberry32) so charts are identical on every run. */

@@ -151,6 +151,18 @@ describe('GET /api/v1/coins/:coinId/market-chart', () => {
     expect(res.body.data.points).toHaveLength(pointCount);
   });
 
+  it('keeps mock charts consistent with the coin\'s reported change', async () => {
+    const [chart, details] = await Promise.all([
+      request(app).get('/api/v1/coins/bitcoin/market-chart?range=7d'),
+      request(app).get('/api/v1/coins/bitcoin'),
+    ]);
+    const points = chart.body.data.points;
+    const chartChange = (points.at(-1).priceUsd / points[0].priceUsd - 1) * 100;
+
+    expect(chartChange).toBeCloseTo(details.body.data.priceChangePercentages['7d'], 6);
+    expect(points.at(-1).priceUsd).toBeCloseTo(details.body.data.priceUsd, 6);
+  });
+
   it('returns few or no points for a newly listed coin', async () => {
     const res = await request(app).get('/api/v1/coins/sample-new-coin/market-chart?range=1y');
 
