@@ -14,6 +14,10 @@ It sits between the app and [CoinGecko](https://www.coingecko.com/en/api) and:
 
 Data provided by CoinGecko.
 
+Full write-up (architecture, test results, security, limitations):
+[technical document](https://github.com/ragavendars21/crypto_market_frontend/blob/main/docs/TECHNICAL_DOCUMENT.md)
+in the app repository.
+
 ## Quick start
 
 Requires Node.js 22.12 or newer.
