@@ -1,5 +1,7 @@
 # Crypto Market Backend
 
+[![CI](https://github.com/ragavendars21/crypto_market_backend/actions/workflows/ci.yml/badge.svg)](https://github.com/ragavendars21/crypto_market_backend/actions/workflows/ci.yml)
+
 Express API for the [Crypto Market Flutter app](https://github.com/ragavendars21/crypto_market_frontend).
 It sits between the app and [CoinGecko](https://www.coingecko.com/en/api) and:
 
