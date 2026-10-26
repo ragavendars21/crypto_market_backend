@@ -24,7 +24,9 @@ export function createApp({ config, logger, version = '1.0.0', marketService }) 
   const app = express();
 
   app.disable('x-powered-by');
-  app.set('trust proxy', 1); // Correct client IPs for rate limiting behind one proxy.
+  // Trust X-Forwarded-For only for the configured number of proxies (default
+  // none); see TRUST_PROXY in config/env.js.
+  app.set('trust proxy', config.trustProxy);
 
   app.use(
     helmet({
@@ -36,14 +38,8 @@ export function createApp({ config, logger, version = '1.0.0', marketService }) 
   );
   app.use(cors({ origin: config.corsOrigins }));
   app.use(express.json({ limit: '10kb' }));
-  app.use(
-    pinoHttp({
-      logger,
-      // The API key is sent as a header to CoinGecko, never by our clients,
-      // but redact auth-style headers anyway so logs stay safe.
-      redact: ['req.headers.authorization', 'req.headers["x-cg-demo-api-key"]'],
-    }),
-  );
+  // Sensitive headers are redacted by the logger itself (utils/logger.js).
+  app.use(pinoHttp({ logger }));
 
   app.use(
     '/api',

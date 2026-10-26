@@ -15,6 +15,10 @@ const envSchema = z
     // Comma-separated list of allowed browser origins, or "*" for any.
     CORS_ORIGIN: z.string().default('*'),
     RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).default(120),
+    // Number of reverse proxies in front of the server (0 = none). Only
+    // then is X-Forwarded-For trusted; otherwise any client could fake it
+    // to dodge the per-IP rate limit.
+    TRUST_PROXY: z.coerce.number().int().min(0).max(5).default(0),
   })
   .superRefine((env, ctx) => {
     if (env.DATA_SOURCE === 'live' && !env.COINGECKO_API_KEY) {
@@ -54,5 +58,6 @@ export function loadConfig(source = process.env) {
     }),
     corsOrigins: env.CORS_ORIGIN === '*' ? '*' : env.CORS_ORIGIN.split(',').map((origin) => origin.trim()),
     rateLimitPerMinute: env.RATE_LIMIT_PER_MINUTE,
+    trustProxy: env.TRUST_PROXY,
   });
 }

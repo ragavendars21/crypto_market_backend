@@ -1,9 +1,8 @@
 import { readFileSync } from 'node:fs';
 
-import { pino } from 'pino';
-
 import { createApp } from './app.js';
 import { loadConfig } from './config/env.js';
+import { createLogger } from './utils/logger.js';
 
 const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 
@@ -15,10 +14,7 @@ try {
   process.exit(1);
 }
 
-const logger = pino({
-  level: config.logLevel,
-  ...(config.nodeEnv === 'development' && { transport: { target: 'pino-pretty' } }),
-});
+const logger = createLogger({ level: config.logLevel, pretty: config.nodeEnv === 'development' });
 
 const app = createApp({ config, logger, version });
 

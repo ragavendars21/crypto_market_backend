@@ -45,4 +45,25 @@ describe('rate limiting', () => {
     expect(res.body.error.code).toBe('RATE_LIMITED');
     expect(res.headers['retry-after']).toBe('60');
   });
+
+  it('cannot be bypassed by faking X-Forwarded-For when no proxy is configured', async () => {
+    const app = createTestApp({ RATE_LIMIT_PER_MINUTE: '2' });
+
+    const statuses = [];
+    for (const fakeIp of ['1.1.1.1', '2.2.2.2', '3.3.3.3']) {
+      const res = await request(app).get('/api/v1/health').set('X-Forwarded-For', fakeIp);
+      statuses.push(res.status);
+    }
+
+    expect(statuses).toEqual([200, 200, 429]);
+  });
+
+  it('uses the forwarded client IP when running behind a trusted proxy', async () => {
+    const app = createTestApp({ RATE_LIMIT_PER_MINUTE: '1', TRUST_PROXY: '1' });
+
+    const first = await request(app).get('/api/v1/health').set('X-Forwarded-For', '1.1.1.1');
+    const otherClient = await request(app).get('/api/v1/health').set('X-Forwarded-For', '2.2.2.2');
+
+    expect([first.status, otherClient.status]).toEqual([200, 200]);
+  });
 });
