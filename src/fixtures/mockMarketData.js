@@ -1,9 +1,3 @@
-// SAMPLE DATA FOR DEVELOPMENT AND TESTS ONLY — NOT REAL MARKET DATA.
-//
-// Shaped like CoinGecko's raw responses (snake_case, nested `{ usd }`
-// objects) so mock mode runs through the same mappers as live data.
-// Some values are deliberately null to exercise "data not available" paths.
-
 export const MOCK_LAST_UPDATED = '2026-10-23T10:00:00.000Z';
 
 const IMAGE_BASE = 'https://coin-images.coingecko.com/coins/images';
@@ -28,7 +22,6 @@ function market(id, symbol, name, imagePath, rank, price, change24h, marketCap, 
   };
 }
 
-/** Raw `/coins/markets` rows, ordered by market cap. */
 export const MOCK_MARKETS = [
   market('bitcoin', 'btc', 'Bitcoin', '1/large/bitcoin.png', 1, 67012.5, 1.85, 1.321e12, 3.12e10, 19712345),
   market('ethereum', 'eth', 'Ethereum', '279/large/ethereum.png', 2, 3285.4, -0.92, 3.95e11, 1.48e10, 120280000),
@@ -53,11 +46,9 @@ export const MOCK_MARKETS = [
   market('the-graph', 'grt', 'The Graph', '13397/large/Graph_Token.png', 21, 0.16, -2.1, 1.53e9, 5.1e7, 9550000000),
   market('decentraland', 'mana', 'Decentraland', '878/large/decentraland-mana.png', 22, 0.29, 1.15, 5.5e8, 3.2e7, 1900000000),
   market('basic-attention-token', 'bat', 'Basic Attention Token', '677/large/basic-attention-token.png', 23, 0.18, -0.6, 2.7e8, 1.4e7, 1490000000),
-  // A newly listed coin: most market values are not available yet.
   market('sample-new-coin', 'snew', 'Sample New Coin With A Very Long Name', null, null, 0.042, null, null, 125000, null),
 ];
 
-/** Extra `/coins/{id}` fields for a few coins; others leave them null. */
 export const MOCK_DETAIL_EXTRAS = {
   bitcoin: {
     total_supply: 21000000,
@@ -69,7 +60,7 @@ export const MOCK_DETAIL_EXTRAS = {
   },
   ethereum: {
     total_supply: 120280000,
-    max_supply: null, // Ethereum has no supply cap.
+    max_supply: null,
     fully_diluted_valuation: 3.95e11,
     changes: { '1h': -0.08, '7d': -4.1, '14d': -1.2, '30d': 5.4, '60d': 9.8, '200d': -6.5, '1y': 41.2 },
     ath: { price: 4878.26, change: -32.65, date: '2021-11-10T14:24:19.604Z' },
@@ -85,10 +76,8 @@ export const MOCK_DETAIL_EXTRAS = {
   },
 };
 
-/** Coins that have existed for less time than some chart ranges. */
 export const MOCK_LISTING_AGE_MS = { 'sample-new-coin': 60 * 60 * 1000 };
 
-/** Raw `/global` response. `updated_at` is in seconds, like CoinGecko's. */
 export const MOCK_GLOBAL = {
   data: {
     active_cryptocurrencies: 17321,

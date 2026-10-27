@@ -9,7 +9,6 @@ import { createAppWithClient } from './helpers/testApp.js';
 
 const SECRET = 'CG-test-secret-key';
 
-/** A logger that writes JSON lines into an array. */
 function captureLogger() {
   const lines = [];
   const destination = new Writable({

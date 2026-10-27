@@ -11,11 +11,6 @@ const MINUTE_MS = 60_000;
 const HOUR_MS = 60 * MINUTE_MS;
 const DAY_MS = 24 * HOUR_MS;
 
-/**
- * Drop-in replacement for the CoinGecko client that serves sample data in
- * the provider's raw format. It has the same methods and throws the same
- * errors, so services, mappers and caching behave exactly as in live mode.
- */
 export function createMockCoinGeckoClient() {
   const findMarket = (coinId) => {
     const row = MOCK_MARKETS.find((coin) => coin.id === coinId);
@@ -85,10 +80,6 @@ function buildRawCoin(row) {
   };
 }
 
-/**
- * A deterministic random walk that ends at the coin's current price, using
- * the same point spacing CoinGecko uses for each number of days.
- */
 function generatePrices(row, days) {
   if (row.current_price === null) return [];
 
@@ -105,9 +96,6 @@ function generatePrices(row, days) {
     prices[i] = prices[i + 1] / (1 + (random() * 2 - 1) * volatility);
   }
 
-  // Bend the walk so the chart's start-to-end change matches the sample
-  // percentage for this period, keeping the chart consistent with the
-  // coin's reported performance.
   const rangeChange = sampleChangeForDays(row, days);
   if (rangeChange !== null) {
     const startCorrection = row.current_price / (1 + rangeChange / 100) / prices[0];
@@ -122,14 +110,12 @@ function generatePrices(row, days) {
     .filter(([timestamp]) => timestamp >= listedAt);
 }
 
-/** The sample change percentage that describes a chart of `days` length. */
 function sampleChangeForDays(row, days) {
   if (days === 1) return row.price_change_percentage_24h;
   const key = { 7: '7d', 30: '30d', 365: '1y' }[days];
   return MOCK_DETAIL_EXTRAS[row.id]?.changes?.[key] ?? null;
 }
 
-/** Small seeded PRNG (mulberry32) so charts are identical on every run. */
 function seededRandom(seedText) {
   let seed = [...seedText].reduce((hash, char) => (Math.imul(hash, 31) + char.charCodeAt(0)) | 0, 17);
   return () => {

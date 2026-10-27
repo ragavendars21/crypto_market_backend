@@ -3,21 +3,9 @@ import { toCoinDetails, toCoinSummaries, toGlobalStats, toPriceHistory } from '.
 import { isUpstreamFailure } from '../utils/upstreamErrors.js';
 import { applyMarketQuery, sortCoins } from './marketQuery.js';
 
-/**
- * Market data use cases. Each method returns `{ value, cachedAt, isStale }`
- * so controllers can fill in the response `meta`.
- *
- * The `client` is either the live CoinGecko client or the mock client;
- * this service does not know or care which.
- */
 export function createMarketService({ client, cache }) {
   const cached = (key, ttlMs, loader) => cache.getOrLoad(key, ttlMs, loader, { shouldServeStale: isUpstreamFailure });
 
-  /**
-   * CoinGecko can only sort by market cap, volume or ID, so we fetch the
-   * top coins once (cached for 60s) and search/filter/sort/paginate them
-   * here. One upstream call per minute serves every listing request.
-   */
   async function listCoins(query) {
     const universe = await cached('markets:top', CACHE_TTL_MS.markets, async () =>
       toCoinSummaries(await client.getMarkets({ perPage: MARKET_UNIVERSE_SIZE, page: 1 })),
@@ -26,7 +14,6 @@ export function createMarketService({ client, cache }) {
     return { ...universe, value: items, pagination: { ...pagination, universeSize: MARKET_UNIVERSE_SIZE } };
   }
 
-  /** Watchlist lookups: coins may be outside the top list, so ask for them directly. */
   async function getCoinsByIds(ids, sort) {
     const sortedIds = [...new Set(ids)].sort();
     const result = await cached(`markets:ids:${sortedIds.join(',')}`, CACHE_TTL_MS.markets, async () =>

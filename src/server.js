@@ -22,7 +22,6 @@ const server = app.listen(config.port, () => {
   logger.info(`Crypto Market API listening on http://localhost:${config.port} (data source: ${config.dataSource})`);
 });
 
-// Finish in-flight requests before exiting (e.g. Ctrl+C or a container stop).
 function shutdown(signal) {
   logger.info(`${signal} received, shutting down`);
   server.close(() => process.exit(0));

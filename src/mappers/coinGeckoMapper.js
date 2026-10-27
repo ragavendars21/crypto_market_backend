@@ -1,10 +1,6 @@
 import { CHART_RANGES } from '../config/marketData.js';
 import { malformedUpstreamResponse } from '../utils/upstreamErrors.js';
 
-// Converts CoinGecko's raw JSON into our API contract (docs/api-contract.md).
-// Every field is treated as untrusted: anything missing or of the wrong type
-// becomes null instead of crashing the request or turning into 0.
-
 const isPlainObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
 
 const toNumber = (value) => (typeof value === 'number' && Number.isFinite(value) ? value : null);
@@ -19,10 +15,8 @@ const toIsoDate = (value) => {
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 };
 
-/** Coins without an id, symbol or name are unusable, so they are dropped. */
 const hasIdentity = (raw) => isPlainObject(raw) && toText(raw.id) && toText(raw.symbol) && toText(raw.name);
 
-/** `/coins/markets` â†’ array of coin summaries. */
 export function toCoinSummaries(rawList) {
   if (!Array.isArray(rawList)) throw malformedUpstreamResponse();
   return rawList.filter(hasIdentity).map(toCoinSummary);
@@ -45,7 +39,6 @@ function toCoinSummary(raw) {
   };
 }
 
-/** `/coins/{id}` â†’ coin details. Values in USD come from `{ usd: ... }` objects. */
 export function toCoinDetails(raw) {
   if (!hasIdentity(raw)) throw malformedUpstreamResponse();
 
@@ -90,11 +83,6 @@ function toPriceExtreme(priceUsd, changePercentage, rawDates) {
   return { priceUsd, changePercentage, date };
 }
 
-/**
- * `/coins/{id}/market_chart` â†’ price history. CoinGecko returns
- * `prices: [[timestampMs, price], ...]`. Invalid points are dropped, never
- * filled in, and the rest are sorted oldest first.
- */
 export function toPriceHistory(raw, coinId, range) {
   if (!isPlainObject(raw) || !Array.isArray(raw.prices)) throw malformedUpstreamResponse();
 
@@ -106,7 +94,6 @@ export function toPriceHistory(raw, coinId, range) {
   return { coinId, range, granularity: CHART_RANGES[range].granularity, points };
 }
 
-/** `/global` â†’ global statistics. CoinGecko wraps the payload in `data`. */
 export function toGlobalStats(raw) {
   if (!isPlainObject(raw) || !isPlainObject(raw.data)) throw malformedUpstreamResponse();
   const data = raw.data;
@@ -126,7 +113,6 @@ export function toGlobalStats(raw) {
     activeCryptocurrencies: toInteger(data.active_cryptocurrencies),
     markets: toInteger(data.markets),
     dominance,
-    // CoinGecko sends `updated_at` in seconds since the epoch.
     updatedAt: toNumber(data.updated_at) === null ? null : toIsoDate(data.updated_at * 1000),
   };
 }

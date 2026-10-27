@@ -12,11 +12,6 @@ import { createHealthRouter } from './routes/healthRoutes.js';
 import { createMarketRouter } from './routes/marketRoutes.js';
 import { AppError } from './utils/AppError.js';
 
-/**
- * Builds the Express app without starting a server. Tests import this and
- * call it with Supertest; server.js is the only file that opens a port.
- * Tests may pass their own `marketService` (e.g. one with a failing client).
- */
 export function createApp({ config, logger, version = '1.0.0', marketService }) {
   const services = marketService ? { marketService } : createDependencies({ config, logger });
   const coinController = createCoinController({ ...services, dataSource: config.dataSource });
@@ -24,21 +19,15 @@ export function createApp({ config, logger, version = '1.0.0', marketService }) 
   const app = express();
 
   app.disable('x-powered-by');
-  // Trust X-Forwarded-For only for the configured number of proxies (default
-  // none); see TRUST_PROXY in config/env.js.
   app.set('trust proxy', config.trustProxy);
 
   app.use(
     helmet({
-      // The API runs over plain HTTP in development (emulators, phones on the
-      // LAN). This directive would make browsers fetch the /api-docs assets
-      // over HTTPS and break that page. HSTS still applies when served over HTTPS.
       contentSecurityPolicy: { directives: { upgradeInsecureRequests: null } },
     }),
   );
   app.use(cors({ origin: config.corsOrigins }));
   app.use(express.json({ limit: '10kb' }));
-  // Sensitive headers are redacted by the logger itself (utils/logger.js).
   app.use(pinoHttp({ logger }));
 
   app.use(

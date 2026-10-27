@@ -6,18 +6,13 @@ const envSchema = z
     PORT: z.coerce.number().int().min(1).max(65535).default(3000),
     LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
 
-    // "mock" serves bundled fixture data and needs no API key.
     DATA_SOURCE: z.enum(['live', 'mock']).default('mock'),
     COINGECKO_BASE_URL: z.url().default('https://api.coingecko.com/api/v3'),
     COINGECKO_API_KEY: z.string().trim().optional(),
     UPSTREAM_TIMEOUT_MS: z.coerce.number().int().min(1000).max(30000).default(8000),
 
-    // Comma-separated list of allowed browser origins, or "*" for any.
     CORS_ORIGIN: z.string().default('*'),
     RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).default(120),
-    // Number of reverse proxies in front of the server (0 = none). Only
-    // then is X-Forwarded-For trusted; otherwise any client could fake it
-    // to dodge the per-IP rate limit.
     TRUST_PROXY: z.coerce.number().int().min(0).max(5).default(0),
   })
   .superRefine((env, ctx) => {
@@ -30,11 +25,6 @@ const envSchema = z
     }
   });
 
-/**
- * Validates environment variables once at startup. A misconfigured server
- * should refuse to start rather than fail on the first request.
- * Error messages name the variable but never print its value.
- */
 export function loadConfig(source = process.env) {
   const result = envSchema.safeParse(source);
 

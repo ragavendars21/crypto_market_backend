@@ -6,23 +6,12 @@ import { coinNotFound, upstreamError, upstreamRateLimited, upstreamTimeout } fro
 const DEFAULT_RETRY_AFTER_SECONDS = 60;
 const RETRYABLE_STATUSES = new Set([502, 503, 504]);
 
-/**
- * Talks to the CoinGecko REST API and returns its raw JSON.
- *
- * Everything provider-specific stays here: base URL, auth header, query
- * parameter names and error formats. Callers only ever see raw data or one
- * of our AppErrors (see utils/upstreamErrors.js).
- *
- * Retry policy: one retry for brief network failures and 502/503/504.
- * Never for 429 (retrying would make the rate limit worse) and never for
- * timeouts (the request already waited the full timeout).
- */
 export function createCoinGeckoClient({ baseUrl, apiKey, timeoutMs, logger, retryDelayMs = 500, adapter }) {
   const http = axios.create({
     baseURL: baseUrl,
     timeout: timeoutMs,
     headers: { Accept: 'application/json', 'x-cg-demo-api-key': apiKey },
-    ...(adapter && { adapter }), // Tests inject a fake transport here.
+    ...(adapter && { adapter }),
   });
 
   async function request(path, params, { isCoinPath = false } = {}) {
@@ -85,7 +74,6 @@ export function createCoinGeckoClient({ baseUrl, apiKey, timeoutMs, logger, retr
 
 function isRetryable(error) {
   if (!axios.isAxiosError(error) || isTimeout(error)) return false;
-  // No response at all means a network-level failure (e.g. connection reset).
   return !error.response || RETRYABLE_STATUSES.has(error.response.status);
 }
 
@@ -106,7 +94,6 @@ function normalizeError(error, { path, isCoinPath, logger }) {
     return upstreamRateLimited(parseRetryAfter(error.response.headers?.['retry-after']));
   }
   if (status === 401 || status === 403) {
-    // Likely a missing or invalid key. Log it for us; clients get a generic 502.
     logger?.error({ path, status }, 'CoinGecko rejected the request; check COINGECKO_API_KEY');
   } else {
     logger?.warn({ path, status, code: error.code }, 'CoinGecko request failed');

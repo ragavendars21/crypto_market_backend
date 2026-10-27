@@ -8,7 +8,6 @@ import {
   marketChartQuerySchema,
 } from '../schemas/coinSchemas.js';
 
-/** Paths, HTTP methods and validation for the market data endpoints. */
 export function createMarketRouter({ coinController }) {
   const router = Router();
 

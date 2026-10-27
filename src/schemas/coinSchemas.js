@@ -20,13 +20,6 @@ const idsSchema = z
       .max(MAX_IDS, `At most ${MAX_IDS} IDs are allowed`),
   );
 
-/**
- * `GET /coins` query. `strictObject` rejects unknown parameters, so a typo
- * like `?srot=price_desc` fails loudly instead of being silently ignored.
- * Fields are optional first so we can tell "not sent" from "default" when
- * checking that `ids` isn't combined with listing filters; defaults are
- * applied afterwards.
- */
 export const listCoinsQuerySchema = z
   .strictObject({
     page: z.coerce.number().int().min(1).optional(),

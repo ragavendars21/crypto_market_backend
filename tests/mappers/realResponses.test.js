@@ -4,9 +4,6 @@ import { describe, expect, it } from 'vitest';
 
 import { toCoinDetails, toCoinSummaries, toGlobalStats, toPriceHistory } from '../../src/mappers/coinGeckoMapper.js';
 
-// Trimmed copies of real CoinGecko responses (captured 2026-10-26), so the
-// mapper is checked against the provider's actual format, not just
-// hand-written samples. Only USD values were kept to keep the files small.
 const fixture = (name) =>
   JSON.parse(readFileSync(new URL(`../fixtures/coingecko/${name}.json`, import.meta.url), 'utf8'));
 

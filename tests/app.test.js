@@ -17,7 +17,6 @@ describe('GET /api/v1/health', () => {
 
     expect(res.headers['x-content-type-options']).toBe('nosniff');
     expect(res.headers['x-powered-by']).toBeUndefined();
-    // Would break /api-docs when opened over plain HTTP (e.g. from a phone on the LAN).
     expect(res.headers['content-security-policy']).not.toContain('upgrade-insecure-requests');
   });
 });

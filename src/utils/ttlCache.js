@@ -1,31 +1,11 @@
-/**
- * A small in-memory cache with per-entry expiry.
- *
- * Besides plain caching it does two things that protect the provider's
- * rate limit:
- *  1. Request sharing: if 10 requests for the same key arrive while the
- *     first upstream call is still running, they all wait for that one call.
- *  2. Stale fallback: if a refresh fails and an expired copy exists, the
- *     expired copy is returned (flagged `isStale`) instead of an error.
- *
- * It lives in one process only. With several server instances, Redis would
- * replace it behind the same `getOrLoad` method.
- */
 export class TtlCache {
   constructor({ maxEntries = 500, now = Date.now } = {}) {
     this.maxEntries = maxEntries;
     this.now = now;
-    this.entries = new Map(); // key -> { value, fetchedAt, expiresAt }
-    this.inFlight = new Map(); // key -> Promise
+    this.entries = new Map();
+    this.inFlight = new Map();
   }
 
-  /**
-   * Returns `{ value, cachedAt, isStale }` for `key`, calling `loader` only
-   * when there is no fresh copy.
-   *
-   * `shouldServeStale(error)` decides which failures may fall back to an
-   * expired copy. A "coin not found" error, for example, should not.
-   */
   async getOrLoad(key, ttlMs, loader, { shouldServeStale = () => true } = {}) {
     const cached = this.entries.get(key);
     if (cached && cached.expiresAt > this.now()) {
@@ -62,8 +42,6 @@ export class TtlCache {
     const fetchedAt = this.now();
     const entry = { value, fetchedAt, expiresAt: fetchedAt + ttlMs };
 
-    // Re-insert so Map order reflects recency, then evict the oldest entry
-    // if we are over the limit. This bounds memory use.
     this.entries.delete(key);
     this.entries.set(key, entry);
     if (this.entries.size > this.maxEntries) {

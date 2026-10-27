@@ -1,10 +1,5 @@
 import { sendData } from '../utils/response.js';
 
-/**
- * Controllers translate HTTP into service calls and back. They read the
- * already-validated input, call the service and send the envelope. No
- * business logic lives here.
- */
 export function createCoinController({ marketService, dataSource }) {
   return {
     async listCoins(req, res) {

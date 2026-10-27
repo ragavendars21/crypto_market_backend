@@ -1,11 +1,5 @@
 import { AppError } from '../utils/AppError.js';
 
-/**
- * Validates `req.params` and/or `req.query` with Zod schemas.
- *
- * Express 5 makes `req.query` read-only, so the parsed, typed values are
- * stored on `req.validated` for controllers to use.
- */
 export function validate({ params, query }) {
   return (req, res, next) => {
     const details = [];
@@ -34,7 +28,6 @@ export function validate({ params, query }) {
 }
 
 function toDetail(issue, location) {
-  // Unknown keys are reported on the object itself; name them explicitly.
   if (issue.code === 'unrecognized_keys') {
     return { field: issue.keys.join(', '), message: `Unknown ${location} parameter` };
   }

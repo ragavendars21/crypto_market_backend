@@ -5,8 +5,6 @@ import { createCoinGeckoClient } from '../../src/clients/coinGeckoClient.js';
 
 const API_KEY = 'test-secret-key';
 
-// Fake Axios transports. Like Axios' real adapters, non-2xx responses
-// reject with an AxiosError that carries the response.
 function reply(status, data = {}, headers = {}) {
   return (config) => {
     const response = { status, statusText: '', data, headers, config };

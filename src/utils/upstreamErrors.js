@@ -1,8 +1,5 @@
 import { AppError } from './AppError.js';
 
-// Factories for the errors the rest of the app can expect from a data
-// client. Both the live and the mock client throw exactly these.
-
 export const coinNotFound = () =>
   new AppError({ status: 404, code: 'COIN_NOT_FOUND', message: 'No coin exists with this ID.' });
 
@@ -27,6 +24,5 @@ export const upstreamError = (message = 'The market data provider is unavailable
 export const malformedUpstreamResponse = () =>
   upstreamError('The market data provider returned an unexpected response.');
 
-/** Only provider-side failures may fall back to cached data. */
 export const isUpstreamFailure = (error) =>
   error instanceof AppError && ['UPSTREAM_RATE_LIMITED', 'UPSTREAM_TIMEOUT', 'UPSTREAM_ERROR'].includes(error.code);

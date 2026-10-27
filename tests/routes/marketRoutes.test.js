@@ -5,8 +5,6 @@ import { coinNotFound, upstreamRateLimited, upstreamTimeout } from '../../src/ut
 import { TtlCache } from '../../src/utils/ttlCache.js';
 import { createAppWithClient, createTestApp } from '../helpers/testApp.js';
 
-// These tests run the whole stack (routes → controller → service → mapper
-// → cache) against the mock client, so no network is involved.
 const app = createTestApp();
 const ids = (res) => res.body.data.map((coin) => coin.id);
 
@@ -231,7 +229,7 @@ describe('provider failures', () => {
     const staleApp = createAppWithClient(client, { cache });
 
     await request(staleApp).get('/api/v1/market/global');
-    now += 10 * 60_000; // Well past the 2-minute TTL.
+    now += 10 * 60_000;
     const res = await request(staleApp).get('/api/v1/market/global');
 
     expect(res.status).toBe(200);
